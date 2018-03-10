@@ -92,7 +92,7 @@ def dump_rides(rides, output):
 def get_solution(rides_list, vehicles, bonus):
     rides = sorted(rides_list, key=lambda r: r.step_min)
     cars = []
-    raw_score, bonus_score = 0, 0
+    raw_score, bonus_score, unassigned = 0, 0, 0
     for i in range(vehicles):
         cars.append(Car())
     for ride in rides:
@@ -104,15 +104,19 @@ def get_solution(rides_list, vehicles, bonus):
             raw_score += ride.distance()
             bonus_score += bonus
         else:
+            ride_assigned = False
             cars_by_distance = sorted(cars, key=lambda c: c.distance_to_ride_start(ride))
             # Search 2 : technically possible
             for car in cars_by_distance:
                 if car.can_finish_in_time(ride):
                     car.assign(ride)
                     raw_score += ride.distance()
+                    ride_assigned = True
                     break  # skip all other cars and go to the next ride
+            if not ride_assigned:
+                unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
-    return rides_solution, raw_score, bonus_score
+    return rides_solution, raw_score, bonus_score, unassigned
 
 
 def set_log_level(args):
@@ -139,14 +143,16 @@ def main():
     raw_score_total, bonus_score_total = 0, 0
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
-        solution, raw_score, bonus_score = get_solution(rides_list, vehicles, bonus)
+        solution, raw_score, bonus_score, unassigned = get_solution(rides_list, vehicles, bonus)
         raw_score_total += raw_score
         bonus_score_total += bonus_score
+        logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-unassigned, unassigned))
         logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(raw_score + bonus_score, raw_score, bonus_score))
         file_out = get_file_out_name(file_in)
         dump_rides(solution, file_out)
     if len(args.file_in) > 1:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(raw_score_total + bonus_score_total, raw_score_total, bonus_score_total))
+        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(raw_score_total + bonus_score_total, raw_score_total,
+                                                                   bonus_score_total))
 
 
 if __name__ == "__main__":
