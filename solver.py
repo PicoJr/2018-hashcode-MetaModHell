@@ -96,18 +96,16 @@ def get_solution(rides_list, vehicles, bonus):
     for i in range(vehicles):
         cars.append(Car())
     for ride in rides:
-        assigned = False
-        cars_by_distance = sorted(cars, key=lambda c: c.distance_to_ride_start(ride))
         # Search 1 : on-time only
-        for car in cars_by_distance:
-            if car.can_start_on_time(ride):
-                car.assign(ride)
-                raw_score += ride.distance()
-                bonus_score += bonus
-                assigned = True
-                break  # skip all other cars and go to the next ride
-        # Search 2 : technically possible
-        if not assigned:
+        cars_on_time = [car for car in cars if car.can_start_on_time(ride)]
+        cars_on_time_by_distance = sorted(cars_on_time, key=lambda c: c.distance_to_ride_start(ride))
+        if cars_on_time_by_distance:
+            cars_on_time_by_distance[0].assign(ride)
+            raw_score += ride.distance()
+            bonus_score += bonus
+        else:
+            cars_by_distance = sorted(cars, key=lambda c: c.distance_to_ride_start(ride))
+            # Search 2 : technically possible
             for car in cars_by_distance:
                 if car.can_finish_in_time(ride):
                     car.assign(ride)
