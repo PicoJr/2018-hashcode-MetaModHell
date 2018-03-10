@@ -39,6 +39,16 @@ INFO:root:dumping rides to res/e_high_bonus.out
 INFO:root:total: 46,018,957 = 36,130,057 + 9,888,900 (bonus)
 ```
 
+## Heuristics
+
+On rides
+
+* priority to rides starting early
+
+On cars
+
+* priority to cars able to start on time (granting bonus points)
+* priority to car closer to ride start
 
 ## Our Team & Qualification Round Score
 
