@@ -49,6 +49,13 @@ class Car:
         self.y = ride.y2
 
 
+class Score:
+    def __init__(self):
+        self.raw_score = 0
+        self.bonus_score = 0
+        self.unassigned = 0
+
+
 def parse_input(file_in):
     """
     Parse input file
@@ -92,7 +99,7 @@ def dump_rides(rides, output):
 def get_solution(rides_list, vehicles, bonus):
     rides = sorted(rides_list, key=lambda r: r.step_min)
     cars = []
-    raw_score, bonus_score, unassigned = 0, 0, 0
+    score = Score()
     for i in range(vehicles):
         cars.append(Car())
     for ride in rides:
@@ -101,8 +108,8 @@ def get_solution(rides_list, vehicles, bonus):
         cars_on_time_by_distance = sorted(cars_on_time, key=lambda c: c.distance_to_ride_start(ride))
         if cars_on_time_by_distance:
             cars_on_time_by_distance[0].assign(ride)
-            raw_score += ride.distance()
-            bonus_score += bonus
+            score.raw_score += ride.distance()
+            score.bonus_score += bonus
         else:
             ride_assigned = False
             cars_by_distance = sorted(cars, key=lambda c: c.distance_to_ride_start(ride))
@@ -110,13 +117,13 @@ def get_solution(rides_list, vehicles, bonus):
             for car in cars_by_distance:
                 if car.can_finish_in_time(ride):
                     car.assign(ride)
-                    raw_score += ride.distance()
+                    score.raw_score += ride.distance()
                     ride_assigned = True
                     break  # skip all other cars and go to the next ride
             if not ride_assigned:
-                unassigned += 1
+                score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
-    return rides_solution, raw_score, bonus_score, unassigned
+    return rides_solution, score
 
 
 def set_log_level(args):
@@ -140,19 +147,19 @@ def main():
     parser.add_argument('--debug', action='store_true', help='for debug purpose')
     args = parser.parse_args()
     set_log_level(args)
-    raw_score_total, bonus_score_total = 0, 0
+    score_total = Score()
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
-        solution, raw_score, bonus_score, unassigned = get_solution(rides_list, vehicles, bonus)
-        raw_score_total += raw_score
-        bonus_score_total += bonus_score
-        logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-unassigned, unassigned))
-        logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(raw_score + bonus_score, raw_score, bonus_score))
+        solution, score = get_solution(rides_list, vehicles, bonus)
+        score_total.raw_score += score.raw_score
+        score_total.bonus_score += score.bonus_score
+        logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-score.unassigned, score.unassigned))
+        logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.raw_score + score.bonus_score, score.raw_score, score.bonus_score))
         file_out = get_file_out_name(file_in)
         dump_rides(solution, file_out)
     if len(args.file_in) > 1:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(raw_score_total + bonus_score_total, raw_score_total,
-                                                                   bonus_score_total))
+        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.raw_score + score_total.bonus_score, score_total.raw_score,
+                                                                   score_total.bonus_score))
 
 
 if __name__ == "__main__":
