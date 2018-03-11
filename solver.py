@@ -6,6 +6,7 @@ import argparse
 import heapq
 import numpy as np
 
+from scipy import spatial
 
 def d(x1, y1, x2, y2):
     """Manhattan distance between (x1,y1) and (x2,y2)"""
@@ -21,9 +22,13 @@ class Ride:
         self.y2 = y2
         self.step_min = step_min
         self.step_max = step_max
+        self.flow = 0
 
     def distance(self):
         return d(self.x1, self.y1, self.x2, self.y2)
+
+    def compute_flow(self, kdtree, radius):
+        self.flow = len(kdtree.query_ball_point((self.x2,self.y2), radius))
 
 
 class Car:
@@ -114,11 +119,10 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def bonus_ride(cars, ride, k, score, bonus):
+def bonus_ride(cars, ride, score, bonus):
     cars_with_bonus = [c for c in cars if c.can_start_on_time(ride)]
-    k_closest_cars_with_bonus = heapq.nsmallest(k, cars_with_bonus, key=lambda c: c.distance_to_ride_start(ride))
-    if k_closest_cars_with_bonus:
-        car = min(k_closest_cars_with_bonus, key=lambda c: c.wait_time(ride))
+    if cars_with_bonus:
+        car = min(cars_with_bonus, key=lambda c: (c.distance_to_ride_start(ride), c.wait_time(ride)))
         assert car.can_finish_in_time(ride)
         score.raw_score += ride.distance()
         score.bonus_score += bonus
@@ -129,11 +133,10 @@ def bonus_ride(cars, ride, k, score, bonus):
         return False
 
 
-def normal_ride(cars, ride, k, score):
+def normal_ride(cars, ride, score):
     cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
-    k_closest_cars = heapq.nsmallest(k, cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
-    if k_closest_cars:
-        car = min(k_closest_cars, key=lambda c: c.step)
+    if cars_can_finish_in_time:
+        car = min(cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
         assert car.can_finish_in_time(ride)
         score.raw_score += ride.distance()
         car.assign(ride)
@@ -142,15 +145,22 @@ def normal_ride(cars, ride, k, score):
         return False
 
 
+def build_kdtree(rides_list):
+    data = [(r.x1, r.y1) for r in rides_list]
+    return spatial.KDTree(data)
+
+
 def get_solution(rides_list, vehicles, rides, bonus):
     cars = [Car() for i in range(vehicles)]
     score = Score()
-    k1 = 5
-    k2 = 5
-    rides_early_departure = sorted(rides_list, key=lambda r: r.step_min)
+    radius = 20
+    kdtree = build_kdtree(rides_list)
+    for r in rides_list:
+        r.compute_flow(kdtree, 20)
+    rides_early_departure = sorted(rides_list, key=lambda r: (r.step_min, -r.flow))
     for ride in rides_early_departure:
-        if not bonus_ride(cars, ride, k1, score, bonus):
-            assigned = normal_ride(cars, ride, k2, score)
+        if not bonus_ride(cars, ride, score, bonus):
+            assigned = normal_ride(cars, ride, score)
             if not assigned:
                 score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
