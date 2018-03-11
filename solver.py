@@ -154,6 +154,9 @@ def main():
     parser = argparse.ArgumentParser(description='assign rides to cars')
     parser.add_argument('file_in', type=str, nargs='+', help='<file basename>.in file input')
     parser.add_argument('--debug', action='store_true', help='for debug purpose')
+    parser.add_argument('--wait', action='store_true', help='display wait time')
+    parser.add_argument('--rides', action='store_true', help='display rides taken and left')
+    parser.add_argument('--score', action='store_true', help='display raw score and bonus score')
     args = parser.parse_args()
     set_log_level(args)
     score_total = Score()
@@ -162,15 +165,25 @@ def main():
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
         solution, score = get_solution(rides_list, vehicles, bonus)
         score_total.add(score)
-        logging.info(
-            "rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides - score.unassigned, score.unassigned))
-        logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
+        if args.rides:
+            print(
+                "rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides - score.unassigned, score.unassigned))
+        if args.wait:
+            print("wait time: {0:,}".format(score_total.wait_time))
+        if args.score:
+            print("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
+        else:
+            print("score: {0:,}".format(score.total()))
         file_out = get_file_out_name(file_in)
         dump_rides(solution, file_out)
     if batch:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score,
-                                                                   score_total.bonus_score))
-    logging.info("wait time: {0:,}".format(score_total.wait_time))
+        if args.wait:
+            print("total wait time: {0:,}".format(score_total.wait_time))
+        if args.score:
+            print("total score: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score,
+                                                                      score_total.bonus_score))
+        else:
+            print("total score: {0:,}".format(score_total.total()))
 
 
 if __name__ == "__main__":
