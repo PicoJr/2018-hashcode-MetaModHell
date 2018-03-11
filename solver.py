@@ -3,6 +3,7 @@
 import re
 import logging
 import argparse
+import heapq
 
 
 def d(x1, y1, x2, y2):
@@ -34,6 +35,9 @@ class Car:
     def distance_to_ride_start(self, ride):
         return d(self.x, self.y, ride.x1, ride.y1)
 
+    def wait_time(self, ride):
+        return max(0, ride.step_min - (self.step + self.distance_to_ride_start(ride)))
+
     def can_start_on_time(self, ride):
         return self.step + self.distance_to_ride_start(ride) <= ride.step_min
 
@@ -54,6 +58,13 @@ class Score:
         self.raw_score = 0
         self.bonus_score = 0
         self.unassigned = 0
+        self.wait_time = 0
+
+    def add(self, other):
+        self.raw_score += other.raw_score
+        self.bonus_score += other.bonus_score
+        self.unassigned += other.unassigned
+        self.wait_time += other.wait_time
 
 
 def parse_input(file_in):
@@ -96,32 +107,33 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def get_solution(rides_list, vehicles, bonus):
-    rides = sorted(rides_list, key=lambda r: r.step_min)
-    cars = []
+def get_solution(rides_list, vehicles, rides, bonus):
+    cars = [Car() for i in range(vehicles)]
     score = Score()
-    for i in range(vehicles):
-        cars.append(Car())
-    for ride in rides:
-        # Search 1 : on-time only
-        cars_on_time = [car for car in cars if car.can_start_on_time(ride)]
-        cars_on_time_by_distance = sorted(cars_on_time, key=lambda c: c.distance_to_ride_start(ride))
-        if cars_on_time_by_distance:
-            cars_on_time_by_distance[0].assign(ride)
+    k = 20
+    rides_early_departure = sorted(rides_list, key=lambda r: r.step_min)
+    for ride in rides_early_departure:
+        assigned = False
+        cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
+        cars_with_bonus = [c for c in cars if c.can_start_on_time(ride)]
+        k_closest_cars = heapq.nsmallest(k, cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
+        k_closest_cars_with_bonus = heapq.nsmallest(k, cars_with_bonus, key=lambda c: c.distance_to_ride_start(ride))
+        if k_closest_cars_with_bonus:
+            car = min(k_closest_cars_with_bonus, key=lambda c: c.wait_time(ride))
+            assert car.can_finish_in_time(ride)
             score.raw_score += ride.distance()
             score.bonus_score += bonus
-        else:
-            ride_assigned = False
-            cars_by_distance = sorted(cars, key=lambda c: c.distance_to_ride_start(ride))
-            # Search 2 : technically possible
-            for car in cars_by_distance:
-                if car.can_finish_in_time(ride):
-                    car.assign(ride)
-                    score.raw_score += ride.distance()
-                    ride_assigned = True
-                    break  # skip all other cars and go to the next ride
-            if not ride_assigned:
-                score.unassigned += 1
+            score.wait_time += car.wait_time(ride)
+            car.assign(ride)
+            assigned = True
+        elif k_closest_cars:
+            car = k_closest_cars[0]
+            assert car.can_finish_in_time(ride)
+            score.raw_score += ride.distance()
+            car.assign(ride)
+            assigned = True
+        if not assigned:
+            score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
     return rides_solution, score
 
@@ -150,16 +162,15 @@ def main():
     score_total = Score()
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
-        solution, score = get_solution(rides_list, vehicles, bonus)
-        score_total.raw_score += score.raw_score
-        score_total.bonus_score += score.bonus_score
+        solution, score = get_solution(rides_list, vehicles, rides, bonus)
+        score_total.add(score)
         logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-score.unassigned, score.unassigned))
         logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.raw_score + score.bonus_score, score.raw_score, score.bonus_score))
         file_out = get_file_out_name(file_in)
         dump_rides(solution, file_out)
     if len(args.file_in) > 1:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.raw_score + score_total.bonus_score, score_total.raw_score,
-                                                                   score_total.bonus_score))
+        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.raw_score + score_total.bonus_score, score_total.raw_score, score_total.bonus_score))
+    logging.info("wait time: {0:,}".format(score_total.wait_time))
 
 
 if __name__ == "__main__":
