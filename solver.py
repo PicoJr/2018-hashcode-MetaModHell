@@ -1,17 +1,16 @@
 #! /usr/bin/python3
 
-import re
-import logging
 import argparse
-import heapq
-import numpy as np
+import logging
+import re
+
 
 def d(x1, y1, x2, y2):
     """Manhattan distance between (x1,y1) and (x2,y2)"""
     return abs(x2 - x1) + abs(y2 - y1)
 
 
-class Ride:
+class Ride(object):
     def __init__(self, rid, x1, y1, x2, y2, step_min, step_max):
         self.rid = rid
         self.x1 = x1
@@ -25,11 +24,8 @@ class Ride:
     def distance(self):
         return d(self.x1, self.y1, self.x2, self.y2)
 
-    def compute_flow(self, kdtree, radius):
-        self.flow = len(kdtree.query_ball_point((self.x2,self.y2), radius, p=1))
 
-
-class Car:
+class Car(object):
     def __init__(self):
         self.assigned_rides = []
         self.step = 0
@@ -60,7 +56,7 @@ class Car:
         self.y = ride.y2
 
 
-class Score:
+class Score(object):
     def __init__(self):
         self.raw_score = 0
         self.bonus_score = 0
@@ -86,11 +82,11 @@ def parse_input(file_in):
     logging.info("opening {}".format(file_in))
     with open(file_in, 'r') as f:
         first_line = f.readline()
-        rows, columns, vehicles, rides, bonus, steps = tuple(map(int, first_line.split(' ')))
+        rows, columns, vehicles, rides, bonus, steps = tuple([int(x) for x in first_line.split(' ')])
         logging.debug("{} {} {} {} {} {}".format(rows, columns, vehicles, rides, bonus, steps))
         rides_list = []
         for rid, line in enumerate(f.readlines()):
-            ride = tuple(map(int, line.split(' ')))  # x1, y1, x2, y2, step_start, step_end
+            ride = tuple([int(x) for x in line.split(' ')])  # x1, y1, x2, y2, step_start, step_end
             rides_list.append(Ride(rid, *ride))
     logging.debug("parsing rides done")
     return rides_list, rows, columns, vehicles, rides, bonus, steps
@@ -116,26 +112,22 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def get_solution(rides_list, vehicles, rides, bonus):
-    cars = [Car() for i in range(vehicles)]
+def get_solution(rides_list, vehicles, bonus):
+    cars = [Car() for _ in range(vehicles)]
     score = Score()
-    rides_earliest_departure = sorted(rides_list, key=lambda r: r.step_min)
+    rides_earliest_departure = sorted(rides_list, key=lambda ride: ride.step_min)
     for r in rides_earliest_departure:
-        k_closest_cars = cars
         candidates = [c for c in cars if c.can_finish_in_time(r)]
         cars_with_bonus = [c for c in candidates if c.can_start_on_time(r)]
-        with_bonus = False
-        best_car = None
         if cars_with_bonus:
             best_car = min(cars_with_bonus, key=lambda c: c.wait_time(r))
-            with_bonus = True
+            score.bonus_score += bonus
+            score.raw_score += r.distance()
+            score.wait_time += best_car.wait_time(r)
+            best_car.assign(r)
         elif candidates:
             best_car = min(candidates, key=lambda c: c.distance_to_ride_start(r))
-        if best_car:
             score.raw_score += r.distance()
-            if with_bonus:
-                score.bonus_score += bonus
-                score.wait_time += best_car.wait_time(r)
             best_car.assign(r)
         else:
             score.unassigned += 1
@@ -162,22 +154,22 @@ def main():
     parser = argparse.ArgumentParser(description='assign rides to cars')
     parser.add_argument('file_in', type=str, nargs='+', help='<file basename>.in file input')
     parser.add_argument('--debug', action='store_true', help='for debug purpose')
-    parser.add_argument('--target', type=int, default=0, help='only dump result if score above target (one input file only)')
     args = parser.parse_args()
     set_log_level(args)
     score_total = Score()
     batch = len(args.file_in) > 1  # several input files
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
-        solution, score = get_solution(rides_list, vehicles, rides, bonus)
+        solution, score = get_solution(rides_list, vehicles, bonus)
         score_total.add(score)
-        logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-score.unassigned, score.unassigned))
+        logging.info(
+            "rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides - score.unassigned, score.unassigned))
         logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
-        if batch or (args.target and score.total() > args.target):
-            file_out = get_file_out_name(file_in)
-            dump_rides(solution, file_out)
+        file_out = get_file_out_name(file_in)
+        dump_rides(solution, file_out)
     if batch:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score, score_total.bonus_score))
+        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score,
+                                                                   score_total.bonus_score))
     logging.info("wait time: {0:,}".format(score_total.wait_time))
 
 

@@ -58,10 +58,6 @@ Team: MetaModHell
 
 Members (listed alphabetically): Karbok, PicoJr
 
-Score: 46,048,775
-
-Rank: 628th World, 81st France
-
 ### Submissions
 
 | Input            |  Score     |
@@ -71,3 +67,21 @@ Rank: 628th World, 81st France
 | C-no hurry       | 13,052,303 |
 | D-metropolis     | 11,353,640 |
 | E-high bonus     | 21,465,945 |
+
+Score: 46,048,775
+
+Rank: 628th World, 81st France
+
+## Extended Round Submissions
+
+| Input            |  Score     |
+|:-----------------|-----------:|
+| A-example        | 10         |
+| B-should be easy | 176,877    |
+| C-no hurry       | 13,147,624 |
+| D-metropolis     | 11,354,814 |
+| E-high bonus     | 21,465,945 |
+
+Score: 46,145,270
+
+Rank: 632th World, 90th France
