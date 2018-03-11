@@ -28,7 +28,7 @@ class Ride:
         return d(self.x1, self.y1, self.x2, self.y2)
 
     def compute_flow(self, kdtree, radius):
-        self.flow = len(kdtree.query_ball_point((self.x2,self.y2), radius))
+        self.flow = len(kdtree.query_ball_point((self.x2,self.y2), radius, p=1))
 
 
 class Car:
@@ -92,7 +92,6 @@ def parse_input(file_in):
         logging.debug("{} {} {} {} {} {}".format(rows, columns, vehicles, rides, bonus, steps))
         rides_list = []
         for rid, line in enumerate(f.readlines()):
-            logging.debug(line.strip())
             ride = tuple(map(int, line.split(' ')))  # x1, y1, x2, y2, step_start, step_end
             rides_list.append(Ride(rid, *ride))
     logging.debug("parsing rides done")
@@ -119,32 +118,6 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def bonus_ride(cars, ride, score, bonus):
-    cars_with_bonus = [c for c in cars if c.can_start_on_time(ride)]
-    if cars_with_bonus:
-        car = min(cars_with_bonus, key=lambda c: (c.distance_to_ride_start(ride), c.wait_time(ride)))
-        assert car.can_finish_in_time(ride)
-        score.raw_score += ride.distance()
-        score.bonus_score += bonus
-        score.wait_time += car.wait_time(ride)
-        car.assign(ride)
-        return True
-    else:
-        return False
-
-
-def normal_ride(cars, ride, score):
-    cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
-    if cars_can_finish_in_time:
-        car = min(cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
-        assert car.can_finish_in_time(ride)
-        score.raw_score += ride.distance()
-        car.assign(ride)
-        return True
-    else:
-        return False
-
-
 def build_kdtree(rides_list):
     data = [(r.x1, r.y1) for r in rides_list]
     return spatial.KDTree(data)
@@ -153,16 +126,32 @@ def build_kdtree(rides_list):
 def get_solution(rides_list, vehicles, rides, bonus):
     cars = [Car() for i in range(vehicles)]
     score = Score()
-    radius = 20
-    kdtree = build_kdtree(rides_list)
-    for r in rides_list:
-        r.compute_flow(kdtree, 20)
-    rides_early_departure = sorted(rides_list, key=lambda r: (r.step_min, -r.flow))
-    for ride in rides_early_departure:
-        if not bonus_ride(cars, ride, score, bonus):
-            assigned = normal_ride(cars, ride, score)
-            if not assigned:
-                score.unassigned += 1
+    k = 10
+    radius = 10
+    logging.debug("building main kdtree")
+    # kdtree = build_kdtree(rides_list)
+    logging.debug("building main kdtree: done")
+    rides_earliest_departure = sorted(rides_list, key=lambda r: r.step_min)
+    for r in rides_earliest_departure:
+        # k_closest_cars = heapq.nsmallest(k, cars, key=lambda c: c.distance_to_ride_start(r))
+        k_closest_cars = cars
+        candidates = [c for c in k_closest_cars if c.can_finish_in_time(r)]
+        cars_with_bonus = [c for c in candidates if c.can_start_on_time(r)]
+        with_bonus = False
+        best_car = None
+        if cars_with_bonus:
+            best_car = min(cars_with_bonus, key=lambda c: c.wait_time(r))
+            with_bonus = True
+        elif candidates:
+            best_car = min(candidates, key=lambda c: c.distance_to_ride_start(r))
+        if best_car:
+            score.raw_score += r.distance()
+            if with_bonus:
+                score.bonus_score += bonus
+                score.wait_time += best_car.wait_time(r)
+            best_car.assign(r)
+        else:
+            score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
     return rides_solution, score
 
@@ -197,8 +186,8 @@ def main():
         score_total.add(score)
         logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-score.unassigned, score.unassigned))
         logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
-        file_out = get_file_out_name(file_in)
         if batch or (args.target and score.total() > args.target):
+            file_out = get_file_out_name(file_in)
             dump_rides(solution, file_out)
     if batch:
         logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score, score_total.bonus_score))
