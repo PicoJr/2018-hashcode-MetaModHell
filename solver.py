@@ -6,8 +6,6 @@ import argparse
 import heapq
 import numpy as np
 
-from scipy import spatial
-
 def d(x1, y1, x2, y2):
     """Manhattan distance between (x1,y1) and (x2,y2)"""
     return abs(x2 - x1) + abs(y2 - y1)
@@ -118,21 +116,10 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def build_kdtree(rides_list):
-    data = [(r.x1, r.y1) for r in rides_list]
-    return spatial.KDTree(data)
-
-
 def get_solution(rides_list, vehicles, rides, bonus):
     cars = [Car() for i in range(vehicles)]
     score = Score()
-    radius = 40
-    logging.debug("building main kdtree")
-    kdtree = build_kdtree(rides_list)
-    logging.debug("building main kdtree: done")
-    for r in rides_list:
-        r.compute_flow(kdtree, radius)
-    rides_earliest_departure = sorted(rides_list, key=lambda r: (-r.flow, r.step_min))
+    rides_earliest_departure = sorted(rides_list, key=lambda r: r.step_min)
     for r in rides_earliest_departure:
         k_closest_cars = cars
         candidates = [c for c in cars if c.can_finish_in_time(r)]
