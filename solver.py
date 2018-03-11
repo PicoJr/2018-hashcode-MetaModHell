@@ -4,6 +4,7 @@ import re
 import logging
 import argparse
 import heapq
+import numpy as np
 
 
 def d(x1, y1, x2, y2):
@@ -62,6 +63,9 @@ class Score:
         self.bonus_score = 0
         self.unassigned = 0
         self.wait_time = 0
+
+    def total(self):
+        return self.raw_score + self.bonus_score
 
     def add(self, other):
         self.raw_score += other.raw_score
@@ -129,7 +133,7 @@ def normal_ride(cars, ride, k, score):
     cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
     k_closest_cars = heapq.nsmallest(k, cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
     if k_closest_cars:
-        car = min(k_closest_cars, key=lambda c: len(c.assigned_rides))
+        car = min(k_closest_cars, key=lambda c: c.step)
         assert car.can_finish_in_time(ride)
         score.raw_score += ride.distance()
         car.assign(ride)
@@ -141,11 +145,12 @@ def normal_ride(cars, ride, k, score):
 def get_solution(rides_list, vehicles, rides, bonus):
     cars = [Car() for i in range(vehicles)]
     score = Score()
-    k = 20
+    k1 = 5
+    k2 = 5
     rides_early_departure = sorted(rides_list, key=lambda r: r.step_min)
     for ride in rides_early_departure:
-        if not bonus_ride(cars, ride, k, score, bonus):
-            assigned = normal_ride(cars, ride, k, score)
+        if not bonus_ride(cars, ride, k1, score, bonus):
+            assigned = normal_ride(cars, ride, k2, score)
             if not assigned:
                 score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
@@ -168,22 +173,25 @@ def get_file_out_name(file_in_name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='parse input data set')
+    parser = argparse.ArgumentParser(description='assign rides to cars')
     parser.add_argument('file_in', type=str, nargs='+', help='<file basename>.in file input')
     parser.add_argument('--debug', action='store_true', help='for debug purpose')
+    parser.add_argument('--target', type=int, default=0, help='only dump result if score above target (one input file only)')
     args = parser.parse_args()
     set_log_level(args)
     score_total = Score()
+    batch = len(args.file_in) > 1  # several input files
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
         solution, score = get_solution(rides_list, vehicles, rides, bonus)
         score_total.add(score)
         logging.info("rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides-score.unassigned, score.unassigned))
-        logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.raw_score + score.bonus_score, score.raw_score, score.bonus_score))
+        logging.info("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
         file_out = get_file_out_name(file_in)
-        dump_rides(solution, file_out)
-    if len(args.file_in) > 1:
-        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.raw_score + score_total.bonus_score, score_total.raw_score, score_total.bonus_score))
+        if batch or (args.target and score.total() > args.target):
+            dump_rides(solution, file_out)
+    if batch:
+        logging.info("total: {0:,} = {1:,} + {2:,} (bonus)".format(score_total.total(), score_total.raw_score, score_total.bonus_score))
     logging.info("wait time: {0:,}".format(score_total.wait_time))
 
 
