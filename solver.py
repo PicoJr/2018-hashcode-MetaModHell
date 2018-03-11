@@ -32,6 +32,9 @@ class Car:
         self.x = 0
         self.y = 0
 
+    def distance_to(self, x, y):
+        return d(self.x, self.y, x, y)
+
     def distance_to_ride_start(self, ride):
         return d(self.x, self.y, ride.x1, ride.y1)
 
@@ -107,33 +110,44 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
+def bonus_ride(cars, ride, k, score, bonus):
+    cars_with_bonus = [c for c in cars if c.can_start_on_time(ride)]
+    k_closest_cars_with_bonus = heapq.nsmallest(k, cars_with_bonus, key=lambda c: c.distance_to_ride_start(ride))
+    if k_closest_cars_with_bonus:
+        car = min(k_closest_cars_with_bonus, key=lambda c: c.wait_time(ride))
+        assert car.can_finish_in_time(ride)
+        score.raw_score += ride.distance()
+        score.bonus_score += bonus
+        score.wait_time += car.wait_time(ride)
+        car.assign(ride)
+        return True
+    else:
+        return False
+
+
+def normal_ride(cars, ride, k, score):
+    cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
+    k_closest_cars = heapq.nsmallest(k, cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
+    if k_closest_cars:
+        car = min(k_closest_cars, key=lambda c: len(c.assigned_rides))
+        assert car.can_finish_in_time(ride)
+        score.raw_score += ride.distance()
+        car.assign(ride)
+        return True
+    else:
+        return False
+
+
 def get_solution(rides_list, vehicles, rides, bonus):
     cars = [Car() for i in range(vehicles)]
     score = Score()
     k = 20
     rides_early_departure = sorted(rides_list, key=lambda r: r.step_min)
     for ride in rides_early_departure:
-        assigned = False
-        cars_can_finish_in_time = [c for c in cars if c.can_finish_in_time(ride)]
-        cars_with_bonus = [c for c in cars if c.can_start_on_time(ride)]
-        k_closest_cars = heapq.nsmallest(k, cars_can_finish_in_time, key=lambda c: c.distance_to_ride_start(ride))
-        k_closest_cars_with_bonus = heapq.nsmallest(k, cars_with_bonus, key=lambda c: c.distance_to_ride_start(ride))
-        if k_closest_cars_with_bonus:
-            car = min(k_closest_cars_with_bonus, key=lambda c: c.wait_time(ride))
-            assert car.can_finish_in_time(ride)
-            score.raw_score += ride.distance()
-            score.bonus_score += bonus
-            score.wait_time += car.wait_time(ride)
-            car.assign(ride)
-            assigned = True
-        elif k_closest_cars:
-            car = k_closest_cars[0]
-            assert car.can_finish_in_time(ride)
-            score.raw_score += ride.distance()
-            car.assign(ride)
-            assigned = True
-        if not assigned:
-            score.unassigned += 1
+        if not bonus_ride(cars, ride, k, score, bonus):
+            assigned = normal_ride(cars, ride, k, score)
+            if not assigned:
+                score.unassigned += 1
     rides_solution = [c.assigned_rides for c in cars]
     return rides_solution, score
 
