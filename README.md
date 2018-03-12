@@ -43,6 +43,23 @@ INFO:root:dumping rides to res/e_high_bonus.out
 total score: 46,059,655
 ```
 
+## Progress Bar
+
+`./solver.py res/c_no_hurry.in res/d_metropolis.in  --progress `
+
+```
+INFO:root:opening res/c_no_hurry.in
+100%|███████████████████████████████████████| 10000/10000 [00:04<00:00, 2086.68it/s]
+score: 13,052,303
+INFO:root:dumping rides to res/c_no_hurry.out
+INFO:root:opening res/d_metropolis.in
+ 43%|█████████████████▌                       | 4277/10000 [00:10<00:14, 403.53it/s]
+```
+
+progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
+
+Note: `solver.py` does **not** require `tqdm` to run.
+
 
 ## Heuristics
 

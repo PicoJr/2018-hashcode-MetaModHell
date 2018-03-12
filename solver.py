@@ -4,7 +4,6 @@ import argparse
 import logging
 import re
 
-
 def d(x1, y1, x2, y2):
     """Manhattan distance between (x1,y1) and (x2,y2)"""
     return abs(x2 - x1) + abs(y2 - y1)
@@ -112,10 +111,21 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def get_solution(rides_list, vehicles, bonus):
+def progress_bar(values):
+    try:
+        from tqdm import tqdm
+        return tqdm(values)
+    except ImportError:
+        logging.warning("tqdm not installed -> no progress bar")
+        return values # no progress bar
+
+
+def get_solution(rides_list, vehicles, bonus, progress):
     cars = [Car() for _ in range(vehicles)]
     score = Score()
     rides_earliest_departure = sorted(rides_list, key=lambda ride: ride.step_min)
+    if progress:
+        rides_earliest_departure = progress_bar(rides_earliest_departure)
     for r in rides_earliest_departure:
         candidates = [c for c in cars if c.can_finish_in_time(r)]
         cars_with_bonus = [c for c in candidates if c.can_start_on_time(r)]
@@ -157,13 +167,14 @@ def main():
     parser.add_argument('--wait', action='store_true', help='display wait time')
     parser.add_argument('--rides', action='store_true', help='display rides taken and left')
     parser.add_argument('--score', action='store_true', help='display raw score and bonus score')
+    parser.add_argument('--progress', action='store_true', help='display progress bar')
     args = parser.parse_args()
     set_log_level(args)
     score_total = Score()
     batch = len(args.file_in) > 1  # several input files
     for file_in in args.file_in:
         (rides_list, rows, columns, vehicles, rides, bonus, steps) = parse_input(file_in)
-        solution, score = get_solution(rides_list, vehicles, bonus)
+        solution, score = get_solution(rides_list, vehicles, bonus, args.progress)
         score_total.add(score)
         if args.rides:
             print(
