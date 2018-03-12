@@ -58,20 +58,10 @@ INFO:root:opening res/d_metropolis.in
 
 progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 
-## Heuristics
+## Solvers
 
-On rides
-
-* priority to rides starting early
-
-On cars
-
-* priority to cars able to start on time (granting bonus points)
-* priority to car closer to ride start
-
-Flow
-
-* number of departures within radius of arrival
+* `solver.py` see [details](details/solver.md)
+* `flow_solver.py` see [details](details/flow_solver.md) (**require tqdm**)
 
 ## Our Team & Qualification Round Score
 
@@ -83,7 +73,7 @@ Members (listed alphabetically): Karbok, PicoJr
 
 ### Qualification Round Submissions
 
-| Input            |  Score     |
+| Input            | Score      |
 |:-----------------|-----------:|
 | A-example        | 10         |
 | B-should be easy | 176,877    |
