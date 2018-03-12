@@ -1,6 +1,10 @@
 # Hash Code Qualification Round 2018
 
+<https://hashcode.withgoogle.com/hashcode_2018.html>
+
 Team MetaModHell
+
+Members (listed alphabetically): Karbok, PicoJr
 
 ## Usage
 
@@ -63,15 +67,7 @@ progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 * `solver.py` see [details](details/solver.md)
 * `flow_solver.py` see [details](details/flow_solver.md) (**require tqdm**)
 
-## Our Team & Qualification Round Score
-
-<https://hashcode.withgoogle.com/hashcode_2018.html>
-
-Team: MetaModHell
-
-Members (listed alphabetically): Karbok, PicoJr
-
-### Qualification Round Submissions
+## Qualification Round Submissions
 
 | Input            | Score      |
 |:-----------------|-----------:|
