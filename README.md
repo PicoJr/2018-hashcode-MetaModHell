@@ -58,7 +58,6 @@ INFO:root:opening res/d_metropolis.in
 
 progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 
-
 ## Heuristics
 
 On rides
@@ -69,6 +68,10 @@ On cars
 
 * priority to cars able to start on time (granting bonus points)
 * priority to car closer to ride start
+
+Flow
+
+* number of departures within radius of arrival
 
 ## Our Team & Qualification Round Score
 
@@ -105,3 +108,15 @@ Rank: 628th World, 81st France
 Score: 46,145,270
 
 Rank: 632th World, 90th France
+
+## After Extended Round
+
+| Input            |  Score     |
+|:-----------------|-----------:|
+| A-example        | 10         |
+| B-should be easy | 176,877    |
+| C-no hurry       | 13,275,923 |
+| D-metropolis     | 11,386,481 |
+| E-high bonus     | 21,465,945 |
+
+Score: 46,305,236
