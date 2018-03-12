@@ -58,8 +58,6 @@ INFO:root:opening res/d_metropolis.in
 
 progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 
-Note: `solver.py` does **not** require `tqdm` to run.
-
 
 ## Heuristics
 

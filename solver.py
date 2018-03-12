@@ -3,6 +3,8 @@
 import argparse
 import logging
 import re
+from tqdm import tqdm
+from scipy import spatial
 
 def d(x1, y1, x2, y2):
     """Manhattan distance between (x1,y1) and (x2,y2)"""
@@ -22,6 +24,9 @@ class Ride(object):
 
     def distance(self):
         return d(self.x1, self.y1, self.x2, self.y2)
+
+    def compute_flow(self, kdtree, radius):
+        self.flow = len(kdtree.query_ball_point((self.x2,self.y2), radius))
 
 
 class Car(object):
@@ -111,22 +116,17 @@ def dump_rides(rides, output):
     logging.debug("dumping rides: done")
 
 
-def progress_bar(values):
-    try:
-        from tqdm import tqdm
-        return tqdm(values)
-    except ImportError:
-        logging.warning("tqdm not installed -> no progress bar")
-        return values # no progress bar
-
-
 def get_solution(rides_list, vehicles, bonus, progress):
     cars = [Car() for _ in range(vehicles)]
     score = Score()
-    rides_earliest_departure = sorted(rides_list, key=lambda ride: ride.step_min)
-    if progress:
-        rides_earliest_departure = progress_bar(rides_earliest_departure)
-    for r in rides_earliest_departure:
+    data = [(r.x1, r.y1) for r in rides_list]
+    kdtree = spatial.KDTree(data)
+    flow_bar = tqdm(rides_list) if progress else rides_list
+    for r in flow_bar:
+        r.compute_flow(kdtree, 20)
+    rides_sorted = sorted(rides_list, key=lambda ride: (ride.step_min, ride.flow))
+    rides_sorted = tqdm(rides_sorted) if progress else rides_sorted
+    for r in rides_sorted:
         candidates = [c for c in cars if c.can_finish_in_time(r)]
         cars_with_bonus = [c for c in candidates if c.can_start_on_time(r)]
         if cars_with_bonus:
