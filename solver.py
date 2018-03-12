@@ -180,7 +180,7 @@ def main():
             print(
                 "rides: {0:,} = {1:,} (taken) + {2:,} (left)".format(rides, rides - score.unassigned, score.unassigned))
         if args.wait:
-            print("wait time: {0:,}".format(score_total.wait_time))
+            print("wait time: {0:,}".format(score.wait_time))
         if args.score:
             print("score: {0:,} = {1:,} + {2:,} (bonus)".format(score.total(), score.raw_score, score.bonus_score))
         else:
