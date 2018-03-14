@@ -68,12 +68,9 @@ progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 
 choose a solver with `--solver`
 
-`./solver.py res/c_no_hurry.in res/d_metropolis.in --solver ride --progress`
+* `./solver.py res/c_no_hurry.in --solver ride` see [details](details/ride_solver.md)
 
-`./solver.py res/c_no_hurry.in res/d_metropolis.in --solver flow --progress`
-
-* `ridesolver.py` see [details](details/ride_solver.md)
-* `flowsolver.py` see [details](details/flow_solver.md)
+* `./solver.py res/c_no_hurry.in --solver flow` see [details](details/flow_solver.md)
 
 ## Qualification Round Submissions
 
