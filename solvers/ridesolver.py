@@ -2,10 +2,10 @@
 
 from tqdm import tqdm
 
-from ride import Ride
 from car import Car
+from ride import Ride
 from score import Score
-from basesolver import BaseSolver
+from solvers.basesolver import BaseSolver
 
 
 class RideSolver(BaseSolver):

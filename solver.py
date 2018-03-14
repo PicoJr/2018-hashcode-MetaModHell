@@ -4,10 +4,11 @@ import argparse
 import logging
 import re
 
+from solvers.ridesolver import RideSolver
+from solvers.flowsolver import FlowSolver
+
+from rides_io import parse_input, dump_rides
 from score import Score
-from ridesio import parse_input, dump_rides
-from flowsolver import FlowSolver
-from ridesolver import RideSolver
 
 
 def set_log_level(args):

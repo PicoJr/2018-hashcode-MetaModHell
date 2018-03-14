@@ -1,4 +1,8 @@
-# Heuristics Used
+# Ride Solver
+
+implementation: [ridesolver.py](../solvers/ridesolver.py)
+
+## Heuristics
 
 On rides
 

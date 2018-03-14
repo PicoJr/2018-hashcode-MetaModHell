@@ -6,7 +6,7 @@ from tqdm import tqdm
 from car import Car
 from ride import Ride
 from score import Score
-from basesolver import BaseSolver
+from solvers.basesolver import BaseSolver
 
 
 class FlowRide(Ride):

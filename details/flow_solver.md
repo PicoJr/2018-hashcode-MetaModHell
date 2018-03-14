@@ -1,6 +1,10 @@
-# Heuristics Used
+# Flow Solver
 
-same as `ridesolver` except:
+implementation: [flowsolver.py](../solvers/flowsolver.py)
+
+## Heuristics
+
+similar to [ridesolver.py](../solvers/ridesolver.py) except:
 
 * Each ride has a _flow_ value
 * The flow is the number of departures within radius of arrival.
