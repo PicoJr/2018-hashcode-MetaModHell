@@ -49,7 +49,7 @@ total score: 46,059,655
 
 ## Progress Bar
 
-`./solver.py res/c_no_hurry.in res/d_metropolis.in  --progress `
+`./solver.py res/c_no_hurry.in res/d_metropolis.in  --progress`
 
 ```
 INFO:root:opening res/c_no_hurry.in
@@ -62,10 +62,18 @@ INFO:root:opening res/d_metropolis.in
 
 progress bars require [tqdm](https://github.com/tqdm/tqdm) module.
 
+`pip3 install tqdm`
+
 ## Solvers
 
-* `solver.py` see [details](details/solver.md)
-* `flow_solver.py` see [details](details/flow_solver.md) (**require tqdm**)
+choose a solver with `--solver`
+
+`./solver.py res/c_no_hurry.in res/d_metropolis.in --solver ride --progress`
+
+`./solver.py res/c_no_hurry.in res/d_metropolis.in --solver flow --progress`
+
+* `ridesolver.py` see [details](details/ride_solver.md)
+* `flowsolver.py` see [details](details/flow_solver.md)
 
 ## Qualification Round Submissions
 

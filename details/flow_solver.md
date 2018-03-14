@@ -1,6 +1,6 @@
 # Heuristics Used
 
-same as `solver` except:
+same as `ridesolver` except:
 
 * Each ride has a _flow_ value
 * The flow is the number of departures within radius of arrival.
