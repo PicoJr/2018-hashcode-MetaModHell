@@ -4,9 +4,6 @@ import argparse
 import logging
 import re
 
-from solvers.ridesolver import RideSolver
-from solvers.flowsolver import FlowSolver
-from solvers.carsolver import CarSolver
 
 from rides_io import parse_input, dump_rides
 from score import Score
@@ -29,12 +26,13 @@ def get_file_out_name(file_in_name):
 
 def get_solver(name):
     if name == 'flow':
+        from solvers.flowsolver import FlowSolver
         return FlowSolver()
-    elif name == 'ride':
-        return RideSolver()
     elif name == 'car':
+        from solvers.carsolver import CarSolver
         return CarSolver()
-    else:
+    else:  # ride
+        from solvers.ridesolver import RideSolver
         return RideSolver()
 
 
