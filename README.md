@@ -72,7 +72,7 @@ choose a solver with `--solver`
 
 * `./solver.py res/c_no_hurry.in --solver flow` see [details](details/flow_solver.md)
 
-* `./solver.py res/c_no_hurry.in --solver car`
+* `./solver.py res/c_no_hurry.in --solver car` see [details](details/car_solver.md)
 
 ## Qualification Round Submissions
 
