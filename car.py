@@ -16,12 +16,14 @@ class Car(object):
 
     def wait_time(self, ride):
         return max(0, ride.step_min - (self.step + self.distance_to_ride_start(ride)))
+    def arrival(self, ride):
+        return self.step + self.distance_to_ride_start(ride) + self.wait_time(ride) + ride.distance()
 
     def can_start_on_time(self, ride):
         return self.step + self.distance_to_ride_start(ride) <= ride.step_min
 
-    def can_finish_in_time(self, ride):
-        can_finish = self.step + self.distance_to_ride_start(ride) + ride.distance() <= ride.step_max
+    def can_finish_in_time(self, ride, steps):
+        can_finish = self.arrival(ride) <= min(ride.step_max, steps)
         return can_finish
 
     def assign(self, ride):

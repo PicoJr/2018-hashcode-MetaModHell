@@ -6,6 +6,7 @@ import re
 
 from solvers.ridesolver import RideSolver
 from solvers.flowsolver import FlowSolver
+from solvers.carsolver import CarSolver
 
 from rides_io import parse_input, dump_rides
 from score import Score
@@ -31,6 +32,8 @@ def get_solver(name):
         return FlowSolver()
     elif name == 'ride':
         return RideSolver()
+    elif name == 'car':
+        return CarSolver()
     else:
         return RideSolver()
 
@@ -50,7 +53,7 @@ def print_score(score, args):
 def main():
     parser = argparse.ArgumentParser(description='assign rides to cars')
     parser.add_argument('file_in', type=str, nargs='+', help='<file basename>.in file input')
-    parser.add_argument('--solver', type=str, default='ride', choices=('ride', 'flow'), help='solver')
+    parser.add_argument('--solver', type=str, default='ride', choices=('ride', 'flow', 'car'), help='solver')
     parser.add_argument('--debug', action='store_true', help='for debug purpose')
     parser.add_argument('--wait', action='store_true', help='display wait time')
     parser.add_argument('--rides', action='store_true', help='display rides taken and left')

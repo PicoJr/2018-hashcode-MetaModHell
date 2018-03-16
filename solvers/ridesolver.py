@@ -19,7 +19,7 @@ class RideSolver(BaseSolver):
         rides_earliest_departure = sorted(rides_instance_list, key=lambda ride: ride.step_min)
         rides_earliest_departure = tqdm(rides_earliest_departure) if args.progress else rides_earliest_departure
         for r in rides_earliest_departure:
-            candidates = [c for c in cars if c.can_finish_in_time(r)]
+            candidates = [c for c in cars if c.can_finish_in_time(r, steps)]
             cars_with_bonus = [c for c in candidates if c.can_start_on_time(r)]
             if cars_with_bonus:
                 best_car = min(cars_with_bonus, key=lambda c: c.wait_time(r))

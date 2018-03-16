@@ -72,6 +72,8 @@ choose a solver with `--solver`
 
 * `./solver.py res/c_no_hurry.in --solver flow` see [details](details/flow_solver.md)
 
+* `./solver.py res/c_no_hurry.in --solver car`
+
 ## Qualification Round Submissions
 
 | Input            | Score      |
@@ -102,12 +104,12 @@ Rank: 632th World, 90th France
 
 ## After Extended Round
 
-| Input            |  Score     |
-|:-----------------|-----------:|
-| A-example        | 10         |
-| B-should be easy | 176,877    |
-| C-no hurry       | 13,275,923 |
-| D-metropolis     | 11,386,481 |
-| E-high bonus     | 21,465,945 |
+| Input            |  Score     | Solver |
+|:-----------------|-----------:|:------:|
+| A-example        | 10         |  ride  |
+| B-should be easy | 176,877    |  ride  |
+| C-no hurry       | 15,084,309 |  car   |
+| D-metropolis     | 11,386,481 |  flow  |
+| E-high bonus     | 21,465,945 |  ride  |
 
-Score: 46,305,236
+Score: 48,113,622
