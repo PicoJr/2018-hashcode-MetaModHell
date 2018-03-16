@@ -109,7 +109,7 @@ Rank: 632th World, 90th France
 | A-example        | 10         |  ride  |
 | B-should be easy | 176,877    |  ride  |
 | C-no hurry       | 15,084,309 |  car   |
-| D-metropolis     | 11,386,481 |  flow  |
+| D-metropolis     | 11,582,244 |  car   |
 | E-high bonus     | 21,465,945 |  ride  |
 
-Score: 48,113,622
+Score: 48,309,385
