@@ -14,9 +14,8 @@ class CarSolver(BaseSolver):
     def get_solution(self, rides_list, rows, columns, vehicles, rides, bonus, steps, args):
         cars = [Car() for _ in range(vehicles)]
         score = Score()
-        rides_instance_list = [Ride(rid, *data) for rid, data in enumerate(rides_list)]
+        rides_unassigned = [Ride(rid, *data) for rid, data in enumerate(rides_list)]
         cars = tqdm(cars) if args.progress else cars
-        rides_unassigned = rides_instance_list
         for car in cars:
             rides_possible = [r for r in rides_unassigned if car.can_finish_in_time(r, steps)]
             with tqdm(total=len(rides_possible)) as pbar:
